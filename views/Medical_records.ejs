@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Records</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="/styles/Styles.css">
+    <style>
+        /* Additional styles for record management */
+        .upload-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border: 1px dashed #ccc;
+        }
+        
+        .upload-btn {
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .upload-btn:hover {
+            background-color: #27ae60;
+        }
+        
+        .upload-btn:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        
+        .record-list {
+            margin-top: 20px;
+        }
+        
+        .record-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.2s;
+        }
+        
+        .record-item:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .record-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #3498db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            margin-right: 15px;
+        }
+        
+        .record-info {
+            flex-grow: 1;
+        }
+        
+        .record-title {
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        
+        .record-date {
+            font-size: 0.8rem;
+            color: #777;
+        }
+        
+        .record-size {
+            font-size: 0.8rem;
+            color: #777;
+        }
+        
+        .record-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .record-action {
+            background-color: #f1f1f1;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.85rem;
+        }
+        
+        .record-action.view {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .record-action.download {
+            background-color: #2ecc71;
+            color: white;
+        }
+        
+        .record-action.delete {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        .record-action:hover {
+            opacity: 0.9;
+        }
+        
+        .no-records {
+            text-align: center;
+            padding: 40px;
+            color: #777;
+            font-size: 1.1rem;
+        }
+        
+        .no-records i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #ddd;
+        }
+        
+        /* File input styling */
+        .file-input-container {
+            position: relative;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        
+        .file-input {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        
+        .file-label {
+            display: inline-block;
+            padding: 8px 15px;
+            background-color: #3498db;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .file-label:hover {
+            background-color: #2980b9;
+        }
+        
+        .selected-file {
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+        
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-content {
+            position: relative;
+            background-color: #fefefe;
+            margin: 50px auto;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 900px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .close-modal {
+            position: absolute;
+            right: 15px;
+            top: 10px;
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close-modal:hover {
+            color: #555;
+        }
+        
+        .file-preview {
+            width: 100%;
+            text-align: center;
+            overflow: auto;
+        }
+        
+        .file-preview img {
+            max-width: 100%;
+            max-height: 70vh;
+            margin: 0 auto;
+        }
+        
+        .file-preview iframe {
+            width: 100%;
+            height: 70vh;
+            border: none;
+        }
+        
+        .file-preview-fallback {
+            padding: 40px 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            text-align: center;
+        }
+        
+        .file-preview-fallback i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            color: #95a5a6;
+        }
+        
+        /* Delete confirmation modal */
+        .delete-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.6);
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .delete-modal-content {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+        }
+        
+        .delete-modal-buttons {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .btn-confirm-delete {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .btn-cancel-delete {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="portal-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-hospital"></i> <span>HMS</span></h2>
+            </div>
+            <div class="user-info">
+                <div class="user-avatar">
+                    <%= user.name[0] %>
+                </div>
+                <div class="user-details">
+                    <div class="user-name">
+                        <%= user.name %>
+                    </div>
+                    <div class="user-id">Patient ID: <%= user._id %>
+                    </div>
+                </div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="/dashboard"><i class="fas fa-th-large"></i> <span>Dashboard</span></a></li>
+                <li><a href="/appointments"><i class="fas fa-calendar-check"></i><span>Appointments</span></a></li>
+                <li><a href="/medical_records" class="active"><i class="fas fa-file-medical"></i> <span>Medical Records</span></a></li>
+                <li><a href="/patient-feedback"><i class="fas fa-procedures"></i> <span>Feedback</span></a></li>
+                <li><a href="/profile"><i class="fas fa-user"></i> <span>Profile</span></a></li>
+            </ul>
+            </ul>
+            <div class="sidebar-footer">
+                <button class="logout-btn" onclick="window.location.href='/home'"><i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span></button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <!-- Topbar -->
+            <div class="topbar">
+                <button id="menu-toggle" class="menu-toggle" onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="page-title">
+                    <h1 id="page-title">Medical Records Management</h1>
+                </div>
+                <div class="topbar-right">
+                    <button class="notification-btn">
+                        <i class="fas fa-bell"></i>
+                        <div class="notification-badge">3</div>
+                    </button>
+                    <span>Welcome, <%= user.name.split(' ')[0] %></span>
+                </div>
+            </div>
+
+            <!-- Page Content -->
+            <div id="page-content" class="active">
+                <!-- Medical Records Content -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">My Medical Records</h2>
+                    </div>
+                    <div class="card-body">
+                        <!-- Upload Section -->
+                        <div class="upload-section">
+                            <h3>Upload New Medical Record</h3>
+                            <p>Upload documents from your local machine (PDF, JPEG, PNG or DOC files).</p>
+                            
+                            <div class="file-input-container">
+                                <label class="file-label">
+                                    <i class="fas fa-file-upload"></i> Choose File
+                                    <input type="file" class="file-input" id="record-file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+                                </label>
+                            </div>
+                            
+                            <button class="upload-btn" id="upload-record-btn" disabled>
+                                <i class="fas fa-cloud-upload-alt"></i> Upload Record
+                            </button>
+                            
+                            <div class="selected-file" id="selected-file-name"></div>
+                        </div>
+
+                        <!-- Records List -->
+                        <div class="record-list">
+                            <h3>Your Records</h3>
+                            
+                            <!-- Empty state message -->
+                            <div class="no-records">
+                                <i class="fas fa-folder-open"></i>
+                                <p>No medical records found</p>
+                                <p>Upload your medical record </p>
+                            </div>
+                            
+                            <!-- Dynamic records will be added here by JavaScript -->
+                            <div id="records-container"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="notification-container" id="notification-container"></div>
+    </div>
+
+    <!-- View File Modal -->
+    <div id="fileViewModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">View File</h2>
+            <div class="file-preview" id="filePreview"></div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteRecordModal" class="delete-modal">
+        <div class="delete-modal-content">
+            <h3>Confirm Delete</h3>
+            <p>Are you sure you want to delete this medical record?</p>
+            <p id="recordToDeleteName" style="font-weight: bold; margin-top: 10px;"></p>
+            <p style="color: #e74c3c; margin-top: 10px;">This action cannot be undone.</p>
+            <div class="delete-modal-buttons">
+                <button id="cancelDeleteBtn" class="btn-cancel-delete">Cancel</button>
+                <button id="confirmDeleteBtn" class="btn-confirm-delete">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Store uploaded files in memory (in a real app, these would be stored on a server)
+        const uploadedFiles = [];
+        
+        // Toggle sidebar function
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('collapsed');
+            document.querySelector('.main-content').classList.toggle('expanded');
+        }
+        
+        // File upload handling
+        const fileInput = document.getElementById('record-file');
+        const uploadBtn = document.getElementById('upload-record-btn');
+        const selectedFileName = document.getElementById('selected-file-name');
+        const recordsContainer = document.getElementById('records-container');
+        const noRecordsMessage = document.querySelector('.no-records');
+        const fileViewModal = document.getElementById('fileViewModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const filePreview = document.getElementById('filePreview');
+        const deleteRecordModal = document.getElementById('deleteRecordModal');
+        const recordToDeleteName = document.getElementById('recordToDeleteName');
+        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+        const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+        let currentFileIdToDelete = null;
+        
+        fileInput.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                const file = this.files[0];
+                selectedFileName.textContent = `Selected file: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+                uploadBtn.disabled = false;
+            } else {
+                selectedFileName.textContent = '';
+                uploadBtn.disabled = true;
+            }
+        });
+        
+        uploadBtn.addEventListener('click', function() {
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                
+                // Store the file in memory
+                const fileId = Date.now().toString(); // Generate a unique ID
+                uploadedFiles.push({
+                    id: fileId,
+                    file: file,
+                    name: file.name,
+                    size: file.size,
+                    type: file.type,
+                    date: new Date()
+                });
+                
+                // Create a new record item
+                createRecordItem(fileId);
+                
+                // Hide the "no records" message
+                noRecordsMessage.style.display = 'none';
+                
+                // Reset the form
+                fileInput.value = '';
+                selectedFileName.textContent = '';
+                uploadBtn.disabled = true;
+            }
+        });
+        
+        function createRecordItem(fileId) {
+            // Find the file in our uploaded files array
+            const fileData = uploadedFiles.find(f => f.id === fileId);
+            if (!fileData) return;
+            
+            // Determine icon based on file type
+            let iconClass = 'fas fa-file';
+            let iconBgColor = '#3498db';
+            
+            if (fileData.name.endsWith('.pdf')) {
+                iconClass = 'fas fa-file-pdf';
+                iconBgColor = '#e74c3c';
+            } else if (fileData.name.match(/\.(jpg|jpeg|png)$/)) {
+                iconClass = 'fas fa-file-image';
+                iconBgColor = '#9b59b6';
+            } else if (fileData.name.match(/\.(doc|docx)$/)) {
+                iconClass = 'fas fa-file-word';
+                iconBgColor = '#2980b9';
+            }
+            
+            // Format the date
+            const dateStr = fileData.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            
+            // Create record item HTML
+            const recordItemHTML = `
+                <div class="record-item" data-file-id="${fileId}">
+                    <div class="record-icon" style="background-color: ${iconBgColor}">
+                        <i class="${iconClass}"></i>
+                    </div>
+                    <div class="record-info">
+                        <div class="record-title">${fileData.name}</div>
+                        <div class="record-date">${dateStr}</div>
+                        <div class="record-size">${(fileData.size / 1024).toFixed(2)} KB</div>
+                    </div>
+                    <div class="record-actions">
+                        <button class="record-action view" title="View" onclick="viewFile('${fileId}')">
+                            <i class="fas fa-eye"></i> View
+                        </button>
+                        <button class="record-action download" title="Download" onclick="downloadFile('${fileId}')">
+                            <i class="fas fa-download"></i> Download
+                        </button>
+                        <button class="record-action delete" title="Delete" onclick="showDeleteConfirmation('${fileId}')">
+                            <i class="fas fa-trash-alt"></i> Delete
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // Add the new record to the records container
+            recordsContainer.insertAdjacentHTML('afterbegin', recordItemHTML);
+        }
+        
+        function viewFile(fileId) {
+            const fileData = uploadedFiles.find(f => f.id === fileId);
+            if (!fileData) return;
+            
+            // Set the modal title
+            modalTitle.textContent = `Viewing: ${fileData.name}`;
+            
+            // Clear previous preview content
+            filePreview.innerHTML = '';
+            
+            // Create appropriate preview based on file type
+            if (fileData.type.startsWith('image/')) {
+                // For images
+                const fileUrl = URL.createObjectURL(fileData.file);
+                filePreview.innerHTML = `<img src="${fileUrl}" alt="${fileData.name}">`;
+            } else if (fileData.type === 'application/pdf') {
+                // For PDFs
+                const fileUrl = URL.createObjectURL(fileData.file);
+                filePreview.innerHTML = `<iframe src="${fileUrl}"></iframe>`;
+            } else {
+                // Fallback for other file types
+                let iconClass = 'fas fa-file';
+                
+                if (fileData.name.endsWith('.pdf')) {
+                    iconClass = 'fas fa-file-pdf';
+                } else if (fileData.name.match(/\.(jpg|jpeg|png)$/)) {
+                    iconClass = 'fas fa-file-image';
+                } else if (fileData.name.match(/\.(doc|docx)$/)) {
+                    iconClass = 'fas fa-file-word';
+                }
+                
+                filePreview.innerHTML = `
+                    <div class="file-preview-fallback">
+                        <i class="${iconClass}"></i>
+                        <h3>${fileData.name}</h3>
+                        <p>Preview not available. Please download the file to view its contents.</p>
+                        <button class="upload-btn" onclick="downloadFile('${fileId}')">
+                            <i class="fas fa-download"></i> Download File
+                        </button>
+                    </div>
+                `;
+            }
+            
+            // Show the modal
+            fileViewModal.style.display = 'block';
+        }
+        
+        function closeModal() {
+            fileViewModal.style.display = 'none';
+            
+            // Clean up any object URLs to prevent memory leaks
+            const img = filePreview.querySelector('img');
+            if (img && img.src) {
+                URL.revokeObjectURL(img.src);
+            }
+            
+            const iframe = filePreview.querySelector('iframe');
+            if (iframe && iframe.src) {
+                URL.revokeObjectURL(iframe.src);
+            }
+        }
+        
+        function downloadFile(fileId) {
+            const fileData = uploadedFiles.find(f => f.id === fileId);
+            if (!fileData) return;
+            
+            // Create a download link
+            const downloadUrl = URL.createObjectURL(fileData.file);
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            a.download = fileData.name; // Set the download filename
+            
+            // Append to the body, click and remove
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            // Clean up the object URL
+            setTimeout(() => {
+                URL.revokeObjectURL(downloadUrl);
+            }, 100);
+        }
+        
+        function showDeleteConfirmation(fileId) {
+            const fileData = uploadedFiles.find(f => f.id === fileId);
+            if (!fileData) return;
+            
+            // Set the file name in the confirmation modal
+            recordToDeleteName.textContent = fileData.name;
+            currentFileIdToDelete = fileId;
+            
+            // Show the delete confirmation modal
+            deleteRecordModal.style.display = 'flex';
+        }
+        
+        function deleteRecord() {
+            if (!currentFileIdToDelete) return;
+            
+            const fileData = uploadedFiles.find(f => f.id === currentFileIdToDelete);
+            if (!fileData) return;
+            
+            // Remove the record from the uploads array
+            const index = uploadedFiles.findIndex(f => f.id === currentFileIdToDelete);
+            if (index !== -1) {
+                uploadedFiles.splice(index, 1);
+            }
+            
+            // Remove the record item from the DOM
+            const recordItem = document.querySelector(`.record-item[data-file-id="${currentFileIdToDelete}"]`);
+            if (recordItem) {
+                recordItem.remove();
+            }
+            
+            // Check if there are any records left
+            if (recordsContainer.children.length === 0) {
+                // Show the "no records" message if there are no records
+                noRecordsMessage.style.display = 'block';
+            }
+            
+            // Close the delete confirmation modal
+            deleteRecordModal.style.display = 'none';
+            
+            // Reset the current file id to delete
+            currentFileIdToDelete = null;
+        }
+        
+        // Event listeners for delete confirmation modal
+        confirmDeleteBtn.addEventListener('click', deleteRecord);
+        
+        cancelDeleteBtn.addEventListener('click', function() {
+            deleteRecordModal.style.display = 'none';
+            currentFileIdToDelete = null;
+        });
+        
+        // Close the modal when clicking outside of it
+        window.addEventListener('click', function(event) {
+            if (event.target === fileViewModal) {
+                closeModal();
+            }
+            if (event.target === deleteRecordModal) {
+                deleteRecordModal.style.display = 'none';
+                currentFileIdToDelete = null;
+            }
+        });
+        
+        // Listen for the Escape key to close the modals
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                if (fileViewModal.style.display === 'block') {
+                    closeModal();
+                }
+                if (deleteRecordModal.style.display === 'flex') {
+                    deleteRecordModal.style.display = 'none';
+                    currentFileIdToDelete = null;
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
