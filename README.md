@@ -114,5 +114,5 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Contact
 
-Your Name - Vishwak - 230701385@rajalakshmi.edu.in
+Your Name - SUDHARSHAN KRISHNAA L K - 230701385@rajalakshmi.edu.in
 Project Link: https://github.com/230701385/Software-Construction
